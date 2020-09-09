@@ -62,7 +62,8 @@ In graphs, objects nodes can be hidden with `members`; labels for the objects ca
 ```
 PV.graph.highlight(pvD2, col="lightblue", members = F) # hide nodes
 PV.graph.highlight(pvD2, col="lightblue", m.labels = F) # hide labels (Fig. 2, left)
-PV.graph.highlight(pvD2, col="lightblue", which = c(1,4)) # show labels for the  1st and the 4th modules (Fig. 2, right)
+# show labels for the  1st and the 4th modules (Fig. 2, right):
+PV.graph.highlight(pvD2, col="lightblue", which = c(1,4))
 ```
 <img align = "center" src = "Images/graph_label_options.png" alt = "Graph labels options" width = 820>
 
