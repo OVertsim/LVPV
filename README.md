@@ -76,4 +76,4 @@ clustering, Bioinformatics*, 22 (2006), no. 12, 1540–1542.
 resampling*, The Annals of Statistics, 32 (2004), 2616–2641.
 3. G. Csardi, T. Nepusz, *The igraph software package for complex network research*, InterJournal
 (2006), Complex Systems
-4. D. Melo, G. Garcia, A. Hubbe, A. P. Assis and G. Marroig, *EvolQG - An  package for evolutionary quantitative genetics* F1000Research, 4 (2016), 925
+4. D. Melo, G. Garcia, A. Hubbe, A. P. Assis and G. Marroig, *EvolQG - An  package for evolutionary quantitative genetics* F1000Research, 4 (2015): 925
