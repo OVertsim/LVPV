@@ -1,8 +1,8 @@
-# Code for pvclust approximately unbiased p-value realisation wrt Newman's leading eigenvector algorithm for detection of integration and moduarity in complex systems
+# Code for pvclust approximately unbiased p-value realisation wrt Newman's leading eigenvector algorithm for detection of integration and moduдarity in complex systems
 
 # an implementation of a multiscale bootstrap procedure designed to estimate the p-values in the modular structure analysis with the leading eigenvector algorithm
 
-# by Oksana Vertsimakha and Igor Dzeverin, 2020-09-07
+# by Oksana Vertsimakha and Igor Dzeverin, 2020-09-10
 
 # References
 # Csardi, G., Nepusz, T. (2006). The igraph software package for complex network research. InterJournal, Complex Systems 1695. http://igraph.org
