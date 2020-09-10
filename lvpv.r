@@ -1,4 +1,4 @@
-# Code for pvclust approximately unbiased p-value realisation wrt Newman's leading eigenvector algorithm for detection of integration and moduдarity in complex systems
+# Code for pvclust approximately unbiased p-value realisation wrt Newman's leading eigenvector algorithm for detection of integration and modularity in complex systems
 
 # an implementation of a multiscale bootstrap procedure designed to estimate the p-values in the modular structure analysis with the leading eigenvector algorithm
 
