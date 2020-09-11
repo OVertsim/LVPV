@@ -4,7 +4,7 @@ AU p-values estimation for community detection with leading eigenvector
 This code is supplementary material to the article on the *leading eigenvector* algorithm for community detection. 
 lvpv contains functions that allow (i) to find approximately unbiased (AU) p-values of the communities found by the leading eigenvector algorithm and (ii) visualise the results as either dendrogram or binary graph. 
 With this functions, from a numeric dataset a complete graph is built (via *igrpaph* \[[3](https://igraph.org/r/)\] package) with weights calculated from the correlation matrix of the data (see *LModularity* function from *evolQG* \[[4](https://cran.r-project.org/web/packages/evolqg/index.html)\] package for another example of such transformation). The leading eigenvector algorithm is applied, and then Shimodaira's  multiscale bootstrap \[2\] procedure (based on the *pvclust* \[[1](https://cran.r-project.org/web/packages/pvclust/index.html)\] package implementation) is conducted to estimate the p-values of the detected modules.
-
+Additional feature allows to access naive bootstrap estimates for the modularity mean, standard deviation and quantiles of desired level. Full summary of the results can be obtained with the `PV.summary` function.
 
 ## Examples
 
