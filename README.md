@@ -32,7 +32,6 @@ Another available option is to create graph with loops by using diagonal element
 pvTD.diag = PV.complete(TestData, iseed=767, q.cut=0, diag=TRUE)
 PV.summary(pvTD.diag)
 ```
-Full summary of the results can be obtained with the `PV.summary` function.
 
 ### Visualization
 There are two ways to visualise results. `PV.dendro`, `PV.text`, and `PV.rectangle` functions provide dendrogram plots with annotations like those of the *pvclust* package, `PV.graph` and `PV.graph.highlight` create and plot binary graph with labeled nodes. Both plot functions use standard visual parameters (for dendrograms, see also *plot.pvclust* help).
