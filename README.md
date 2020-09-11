@@ -1,5 +1,5 @@
 # LVPV
-AU p-values estimation for community detection with leading eigenvector.
+AU p-values estimation for community detection with leading eigenvector
 
 This code is supplementary material to the article on the *leading eigenvector* algorithm for community detection. 
 lvpv contains functions that allow (i) to find approximately unbiased (AU) p-values of the communities found by the leading eigenvector algorithm and (ii) visualise the results as either dendrogram or binary graph. 
