@@ -3,7 +3,7 @@ AU p-values estimation for community detection with leading eigenvector
 
 This code is supplementary material to the article on the *leading eigenvector* algorithm for community detection. 
 lvpv contains functions that allow (i) to find approximately unbiased (AU) p-values of the communities found by the leading eigenvector algorithm and (ii) visualise the results as either dendrogram or binary graph. 
-With this functions, from a numeric dataset a complete graph is built (via *igrpaph* \[[3](https://igraph.org/r/)\] package) with weights calculated from the correlation matrix of the data (see *LModularity* function from *evolQG* \[[4](https://cran.r-project.org/web/packages/evolqg/index.html)\] package for another example of such transformation). The leading eigenvector algorithm is applied, and then Shimodaira's  multiscale bootstrap \[[2](https://projecteuclid.org/euclid.aos/1107794881)\] procedure (based on the *pvclust* \[[1](https://cran.r-project.org/web/packages/pvclust/index.html)\] package implementation) is conducted to estimate the p-values of the detected modules.
+With this functions, from a numeric dataset a complete graph is built (via *igrpaph* \[[4](https://igraph.org/r/)\] package) with weights calculated from the correlation matrix of the data (see *LModularity* function from *evolQG* \[[5](https://cran.r-project.org/web/packages/evolqg/index.html)\] package for another example of such transformation). The leading eigenvector algorithm \[[1](https://www.pnas.org/content/103/23/8577)\] is applied, and then Shimodaira's  multiscale bootstrap \[[3](https://projecteuclid.org/euclid.aos/1107794881)\] procedure (based on the *pvclust* \[[2](https://cran.r-project.org/web/packages/pvclust/index.html)\] package implementation) is conducted to estimate the p-values of the detected modules.
 Additional feature allows to access naive bootstrap estimates for the modularity mean, standard deviation and quantiles of desired level.
 
 ## Examples
@@ -70,9 +70,10 @@ PV.graph.highlight(pvD2, col="lightblue", which = c(1,4))
 
 
 ## References
-1. R. Suzuki, H. Shimodaira, *Pvclust: an R package for assessing the uncertainty in hierarchical
-clustering*, Bioinformatics, 22 (2006), no. 12, 1540–1542.
-2. H. Shimodaira, *Approximately unbiased tests of regions using multistep-multiscale bootstrap
+1. M. E. J. Newman, *Modularity and community structure in networks*, Proceedings of the National Academy of Sciences of the USA, 103 (2006), 8577-8582.
+2. R. Suzuki, H. Shimodaira, *Pvclust: an R package for assessing the uncertainty in hierarchical
+clustering*, Bioinformatics, 22 (2006), 1540–1542.
+3. H. Shimodaira, *Approximately unbiased tests of regions using multistep-multiscale bootstrap
 resampling*, The Annals of Statistics, 32 (2004), 2616–2641.
-3. G. Csardi, T. Nepusz, *The igraph software package for complex network research*, InterJournal, Complex Systems 1695 (2006)
-4. D. Melo, G. Garcia, A. Hubbe, A. P. Assis and G. Marroig, *EvolQG - An  package for evolutionary quantitative genetics*, F1000Research, 4 (2015): 925
+4. G. Csardi, T. Nepusz, *The igraph software package for complex network research*, InterJournal, Complex Systems 1695 (2006)
+5. D. Melo, G. Garcia, A. Hubbe, A. P. Assis and G. Marroig, *EvolQG - An  package for evolutionary quantitative genetics*, F1000Research, 4 (2015): 925
