@@ -15,7 +15,7 @@ colnames(TestData) = c("v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8")
 
 ## analyze TestData using Newman's leading eigenvector method
 pvTD = PV.complete(TestData, iseed=767)
-PV.dendro(pvTD); PV.text(pvTD) 
+PV.dendro(pvTD, print.pv = F); PV.text(pvTD) 
 plot(PV.graph(pvTD))
 PV.graph.highlight(pvTD, col="lightblue")
 PV.summary(pvTD)
@@ -45,7 +45,7 @@ plot(sTD5$points[,1], sTD5$points[,2], bg="springgreen", pch=21, cex=2, xlab="Ax
 
 # to obtain the results of Newman's leading eigenvector method similar to the results of cluster analysis and Sammon's method, use
 pvTD.n = PV.complete(TestData, iseed=767, square=FALSE)
-PV.dendro(pvTD.n); PV.text(pvTD.n)
+PV.dendro(pvTD.n, print.pv = F); PV.text(pvTD.n)
 PV.graph.highlight(pvTD.n, col="lightblue")
 PV.summary(pvTD.n)
 
@@ -62,7 +62,7 @@ lmod.partition
 
 # use lvpv, specify the same calculation algorithm as in evolqg 
 pvTD.diag = PV.complete(TestData, iseed=767, q.cut=0, diag=TRUE)
-PV.dendro(pvTD.diag); PV.text(pvTD.diag) 
+PV.dendro(pvTD.diag)
 PV.graph.highlight(pvTD.diag, col="lightblue")
 PV.summary(pvTD.diag)
 
@@ -73,6 +73,6 @@ pvTD.diag$membership
 
 ## use Gaussian transformation before analyzing the data
 pvTD.gauss = PV.complete(TestData, iseed=767, method="kendall", gauss=TRUE)
-PV.dendro(pvTD.gauss); PV.text(pvTD.gauss) 
+PV.dendro(pvTD.gauss, print.pv = F); PV.text(pvTD.gauss) 
 PV.graph.highlight(pvTD.gauss, col="lightblue")
 PV.summary(pvTD.gauss)
