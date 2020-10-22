@@ -688,7 +688,9 @@ PV.graph = function(x, members = TRUE,
     if(is.null(which)) {which = 1:K}
     include = xC %in% which; xCin = xC[include]
     
-    if(!is.null(names(xCin))){names = names(xCin)} else{names = paste("col", 1:length(xC))}
+    if(is.null(names(xCin))){names = paste("col", 1:length(xC))} else {
+      names = names(xCin); 
+      names[names(xCin)==""]=paste("col", 1:length(xC))[names(xCin)==""]} 
     nn = sum(include)
     
     for(k in 1:nn){
