@@ -688,7 +688,8 @@ PV.graph = function(x, members = TRUE,
     if(is.null(which)) {which = 1:K}
     include = xC %in% which; xCin = xC[include]
     
-    names = names(xCin); nn = sum(include)
+    if(!is.null(names(xCin))){names = names(xCin)} else{names = paste("col", 1:length(xC))}
+    nn = sum(include)
     
     for(k in 1:nn){
       G = G+vertices(paste(names[k]))+edge(paste(xCin[k]), paste(names[k]))
