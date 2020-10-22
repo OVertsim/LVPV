@@ -43,7 +43,7 @@ cor.graph = function(data,
   res = cluster_leading_eigen(g, options = list(maxiter = 1000000))
   orig.cl = res$membership; orig.merges = res$merges
   names(orig.cl)<-colnames(data)
-  orig.mod = res$modularity
+  orig.mod = modularity(g, res$membership, weights = E(g)$weight)
   
   return(list(orig.cl, orig.merges, orig.mod))
 }
