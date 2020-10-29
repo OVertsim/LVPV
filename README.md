@@ -5,6 +5,7 @@ This code is supplementary material to the article on the *leading eigenvector* 
 lvpv contains functions that allow (i) to find approximately unbiased (AU) p-values of the communities found by the leading eigenvector algorithm and (ii) visualise the results as either dendrogram or binary graph. 
 With this functions, from a numeric dataset a complete graph is built (via *igraph* \[[4](https://igraph.org/r/)\] package) with weights calculated from the correlation matrix of the data (see *LModularity* function from *evolQG* \[[5](https://cran.r-project.org/web/packages/evolqg/index.html)\] package for another example of such transformation). The leading eigenvector algorithm \[[1](https://www.pnas.org/content/103/23/8577)\] is applied, and then Shimodaira's  multiscale bootstrap \[[3](https://projecteuclid.org/euclid.aos/1107794881)\] procedure (based on the *pvclust* \[[2](https://cran.r-project.org/web/packages/pvclust/index.html)\] package implementation) is conducted to estimate the p-values of the detected modules.
 Additional feature allows to access naive bootstrap estimates for the modularity mean, standard deviation and quantiles of desired level.
+`tuning` option uses fine-tuning procedure in the leading eigenvector algorithm as described in the original article \[[1](https://www.pnas.org/content/103/23/8577)\].
 
 ## Examples
 
