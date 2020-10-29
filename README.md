@@ -34,7 +34,7 @@ PV.summary(pvTD.diag)
 ```
 
 ### Visualization
-There are two ways to visualise results. `PV.dendro`, `PV.text`, and `PV.rectangle` functions provide dendrogram plots with annotations like those of the *pvclust* package, `PV.graph` and `PV.graph.highlight` create and plot binary graph with labeled nodes. Both plot functions use standard visual parameters (for dendrograms, see also *plot.pvclust* help).
+There are two ways to visualise results. `PV.dendro`, `PV.text`, and `PV.rectangle` functions provide dendrogram plots with annotations like those of the *pvclust* package, `PV.graph` and `PV.graph.highlight` create and plot binary graph with labeled nodes. Both plot functions use standard visual parameters (for dendrograms, see also *plot.pvclust* help). Parameter `members` allow to see the members of modules with `which` numbers (if `which` is not specified all modules are shown). 
 ```
 # DENDROGRAM
 PV.dendro(pvTD, print.pv = F); PV.text(pvTD) # dendrogram with added AU p-values
