@@ -12,7 +12,8 @@
 
 
 # creates graph from data's cor matrix, returns clusters, merges & modularity;
-# (function requires igraph package)
+# (function requires igraph package and rARPACK package for the fine-tuning implementation)
+
 
 # method and use same as cor() function options;
 # gauss allows for prior gaussian tranformation of the correlation matrix, default = FALSE;
@@ -26,25 +27,41 @@ cor.graph = function(data,
                      method = "pearson",
                      use = "everything",
                      gauss = FALSE,
-                     q.cut = 0.5,
+                     beta = 1,
+                     q.cut = .5,
                      diag = FALSE,
                      square = TRUE,
+                     tuning = FALSE,
                      warnings = FALSE){
   suppressMessages(require(igraph))
   C = cor(data, method = method, use = use)
+  C = C^beta
+  
   if(any(C<0)&square){
     C = C^2
     if(warnings) warning("Some correlations are negative. Using squared correlations.")
   }
+  
+  if((0<q.cut)&(q.cut<1)){diag(C) = 0; C[abs(C) < quantile(abs(C), q.cut)] = 0}
+  
   if(gauss|!square) C = exp(-(1-abs(C))^2/(2*sd(C)^2))
-  else if((0<q.cut)&(q.cut<1)) diag(C) = 0; C[C^2 < quantile(C^2, q.cut)] = 0
+  
   if(diag) diag(C)=1
   
   g = graph.adjacency(C, weighted = TRUE, diag = diag, mode = 'undirected')
-  res = cluster_leading_eigen(g, options = list(maxiter = 1000000))
+  if(tuning){
+    res = NewmanSpectral(g, weights = TRUE)
+  } else{
+    res = cluster_leading_eigen(g, options = list(maxiter = 1000000)) 
+  }
+  
   orig.cl = res$membership; orig.merges = res$merges
-  names(orig.cl)<-colnames(data# Code for pvclust approximately unbiased p-value realisation wrt Newman's leading eigenvector algorithm for detection of integration and modularity in complex systems
-
+  if(!is.null(colnames(data))){names(orig.cl)<-colnames(data)} 
+  else{names(orig.cl) = paste("col", 1:ncol(data), sep = "")}
+  orig.mod = res$modularity
+  
+  return(list(orig.cl, orig.merges, orig.mod))
+}
 
 # (inner function)
 # inputs: membership and merges as obtained by cluster_leading_eigen igraph function.
@@ -57,7 +74,6 @@ SplitMerges = function(c.membership, c.merges){
   m <- nrow(c.merges)
   K <- max(c.membership)
   B <- list()
-  #print(m)
   
   for(i in 1:K) B[[i]] <- which(c.membership == i)
   
@@ -81,6 +97,7 @@ SplitMerges = function(c.membership, c.merges){
   return(split)
 }
 
+
 # bootstrap for clusters and modularity
 # r = bootstrap scale parameter: nboot - number of bootstrap samples;
 # store = store sample correlations;
@@ -91,7 +108,7 @@ SplitMerges = function(c.membership, c.merges){
 
 PV.boot<-function(data, r, nboot = 1000,
                   method = "pearson", use = "everything", 
-                  warnings = F, gauss = F, q.cut = 0.5, diag = F, square = square,
+                  warnings = F, gauss = F, q.cut = 0.5, beta = 1, diag = F, square = square,
                   store = F, quiet = F, tuning = F,
                   mod.alpha = .05){
   
@@ -102,7 +119,7 @@ PV.boot<-function(data, r, nboot = 1000,
   r <- size/n
   
   g.cor = cor.graph(data, method = method, use = use, 
-                    gauss = gauss, q.cut = q.cut, 
+                    gauss = gauss, q.cut = q.cut, beta = beta, 
                     diag = diag, square = square,
                     tuning = tuning, warnings = warnings)
   pattern   <- SplitMerges(g.cor[[1]], g.cor[[2]])$pattern
@@ -120,7 +137,7 @@ PV.boot<-function(data, r, nboot = 1000,
     boot.data = data[smpl,]
     
     x.cor = cor.graph(boot.data, method = method, use = use, gauss = gauss, 
-                      square = square, q.cut = q.cut, diag = diag, tuning = tuning)
+                      square = square, q.cut = q.cut, beta = beta, diag = diag, tuning = tuning)
     
     mod[[i]] = x.cor[[3]]
     
@@ -154,6 +171,7 @@ PV.boot<-function(data, r, nboot = 1000,
                mod.alpha = mod.alpha,
                method = method, use = use,
                q.cut = q.cut,
+               beta = beta,
                diag = diag,
                gauss = gauss,
                square = square,
@@ -237,7 +255,7 @@ PV.au_bp.fit <- function(bp, r, nboot) {
 PV.complete<- function(data, nboot = 1000, 
                        r = seq(.5,1.4,by=.1),
                        method="pearson", use="everything",
-                       warnings=FALSE, gauss=FALSE, square=TRUE, q.cut=.5, diag=FALSE,
+                       warnings=FALSE, gauss=FALSE, square=TRUE, q.cut=.5, beta = 1, diag=FALSE,
                        iseed=NULL, quiet=FALSE, tuning = FALSE, store=FALSE,
                        mod.alpha = .05){
   
@@ -248,6 +266,7 @@ PV.complete<- function(data, nboot = 1000,
   mboot <- lapply(r, PV.boot, data = data, 
                   method = method, use = use,
                   q.cut = q.cut,
+                  beta = beta,
                   gauss = gauss,
                   square = square,
                   diag = diag,
@@ -256,7 +275,7 @@ PV.complete<- function(data, nboot = 1000,
                   mod.alpha = mod.alpha)
   
   ### merge results
-  g.full = cor.graph(data, method = method, use = use, q.cut = q.cut, tuning = tuning,
+  g.full = cor.graph(data, method = method, use = use, q.cut = q.cut, beta = beta,  tuning = tuning,
                      diag = diag, square = square, gauss = gauss, warnings = warnings)
   
   pattern <- SplitMerges(g.full[[1]], g.full[[2]])$pattern
@@ -335,7 +354,7 @@ PV.complete<- function(data, nboot = 1000,
                    method = method, use = use, 
                    warnings = warnings, gauss = gauss,
                    square = square, tuning = tuning,
-                   q.cut = q.cut, diag = diag,
+                   q.cut = q.cut, beta = beta, diag = diag,
                    store = F, quiet= T,
                    mod.alpha = mod.alpha)
     
@@ -364,7 +383,7 @@ PV.complete<- function(data, nboot = 1000,
     nboot = nboot, r=r,
     edges = edges.pv,
     method = list(cor.method = method, use = use, gauss = gauss, 
-                  q.cut = q.cut, diag = diag, square = square, 
+                  q.cut = q.cut, beta = beta, diag = diag, square = square, 
                   mod.alpha = mod.alpha, tuning = tuning, seed = iseed),
     
     store=store
@@ -372,6 +391,66 @@ PV.complete<- function(data, nboot = 1000,
   return(pv.result)
 }
 PV.complete = compiler::cmpfun(PV.complete)
+
+
+# creates summary: cluster elements and p-value information, used method info
+# x = PV.complete output list;
+# which specifies cluster numbers according to the dendoram, e.g. for C1 enter which = 1
+# if not specified all clusters are shown; 
+# modularity shows modularity bootstrap results 
+# digits sets round parameter
+
+PV.summary<-function(x, which = NULL, digits = 3, modularity = TRUE){
+  d = TRUE
+  n = nrow(x$edges.bp); K = length(unique(x$membership->cl))
+  
+  if(is.null(which)) which = 1:(n-1)
+  mtch = intersect(which, 1:K)
+  
+  if(n == 1) {print("One cluster detected"); d = F}
+  
+  if(length(mtch)==0) {print(paste("Wrong cluster indexes,", K, "clusters found", sep = " ")); d = F}
+  
+  if(d){
+    names = names(cl)
+    if(is.null(names)) names = 1:length(cl) 
+    
+    cat("Clusters:\n\n")
+    for(j in mtch){
+      
+      cat(paste("C", j, ": ", sep = ""))
+      
+      cat(paste(names[cl==j], sep = ", "), labels = NULL)
+      
+      cat("\n")
+    }
+    cat("Estimates on edges:\n\n")
+    
+    print(round(x$edges[mtch,], digits=digits))
+    
+    cat("\n")
+    
+    cat(paste("Correlation method: ", x$method[[1]],', use = ', x$method[[2]], "\n", sep = ""))
+    if(!x$method[[7]]) cat('Negative correlations used',"\n")
+    if(x$method[[3]]) cat('Gauss transformation used',"\n")
+    if(x$method[[5]]!=1) cat('Correlation matrix in power', x$method[[5]], 'used', "\n")
+    if((is.numeric(x$method[[4]]))&(x$method[[4]]>0)) cat('Correlations cut at', 
+                                                          paste(round(100*x$method[[4]],2),"%",sep=""), 
+                                                          'quantile', "\n")
+    if(x$method[[6]]) cat('diag = TRUE, graph built with loops', "\n")
+    if(x$method[[9]]) cat('Fine-tuning procedure used in the community detection', "\n")
+  }
+  if(modularity) cat(paste('Modularity: ', round(x$modularity, 4), "\n", 
+                           'Bootstrap estimate: ', round(x$mod.stats["mean"],4), "\n",
+                           'Bootstrap sd: ', round(x$mod.stats["sd"],4), "\n", 
+                           'Bootstrap ', paste(round(100*x$method$mod.alpha/2,2),"%",sep=""), ' quantile: ',
+                           round(x$mod.stats["q1"], 4), "\n", 
+                           'Bootstrap ', paste(round(100*(1-x$method$mod.alpha/2),2),"%",sep=""), ' quantile: ',
+                           round(x$mod.stats["q2"], 4), sep = ""))
+}
+
+
+
 
 
 # (inner function)
@@ -422,11 +501,11 @@ make_dendro = function(xC, xM, K, m){
   return(a)
 }
 
-
 # creates dendrogram according to leading eigenvector communities
-# x = PV.complete function output, plot parameters; 
-# members option adds module members names; which with allows to specify particular modules by their numbers
-# additional parameters (...) for the plot function
+# x = PV.complete function output, additional parameters (...) for the plot function; 
+# print.pv adds AU and BP p-value estimates (default; otherwise, can be done with PV>text function)
+# members option adds module members labels; which with allows to specify particular modules by their numbers
+
 
 PV.dendro <-function(x, members = FALSE, which = NULL,
                      print.pv=TRUE, float=0.01,
@@ -447,9 +526,11 @@ PV.dendro <-function(x, members = FALSE, which = NULL,
   if(is.null(ylab))
     ylab = ""
   
-  
+  if(is.null(cex))
+    cex = .7
+
   if(members){
-    names = names(xC); if(is.na(names)) names = 1:length(xC)
+    names = names(xC)
     if(is.null(which)) which = 1:(2*m)
     mtch = intersect(which, 1:K)
     
@@ -469,7 +550,6 @@ PV.dendro <-function(x, members = FALSE, which = NULL,
     PV.text(x, col=col.text, cex=cex.pv, font=font.pv, float=float, print.num=print.num)
   }
 }
-
 
 # adds estimated BP and AU p-values next to the splits to the dendrogram by PV.dendro
 # x = PV.complete function output, text parameters
@@ -517,62 +597,6 @@ PV.text <- function(x, col=c(au=2, bp=3),
 
 
 
-# creates summary: cluster elements and p-value information, used method info
-# x = PV.complete output list;
-# which specifies cluster numbers according to the dendoram, e.g. for C1 enter which = 1
-# if not specified all clusters are shown; 
-# modularity shows modularity bootstrap results 
-# digits sets round parameter
-
-PV.summary<-function(x, which = NULL, digits = 3, modularity = TRUE){
-  d = TRUE
-  n = nrow(x$edges.bp); K = length(unique(x$membership->cl))
-  
-  if(is.null(which)) which = 1:(n-1)
-  mtch = intersect(which, 1:K)
-  
-  if(n == 1) {print("One cluster detected"); d = F}
-  
-  if(length(mtch)==0) {print(paste("Wrong cluster indexes,", K, "clusters found", sep = " ")); d = F}
-  
-  if(d){
-    names = names(cl)
-    if(is.null(names)) names = 1:length(cl) 
-    
-    cat("Clusters:\n\n")
-    for(j in mtch){
-      
-      cat(paste("C", j, ": ", sep = ""))
-      
-      cat(paste(names[cl==j], sep = ", "), labels = NULL)
-      
-      cat("\n")
-    }
-    cat("Estimates on edges:\n\n")
-    
-    print(round(x$edges[mtch,], digits=digits))
-    
-    cat("\n")
-    
-    cat(paste("Correlation method: ", x$method[[1]],', use = ', x$method[[2]], "\n", sep = ""))
-    if(!x$method[[6]]) cat('Negative correlations used',"\n")
-    if(x$method[[3]]) cat('Gauss transformation used',"\n")
-    if((is.numeric(x$method[[4]]))&(x$method[[4]]>0)) cat('Correlations cut at', 
-                                                          paste(round(100*x$method[[4]],2),"%",sep=""), 
-                                                          'quantile', "\n")
-    if(x$method[[5]]) cat('diag = TRUE, graph built with loops', "\n")
-    if(x$method[[8]]) cat('Fine-tuning procedure used in the community detection', "\n")
-  }
-  if(modularity) cat(paste('Modularity: ', round(x$modularity, 4), "\n", 
-                           'Bootstrap estimate: ', round(x$mod.stats["mean"],4), "\n",
-                           'Bootstrap sd: ', round(x$mod.stats["sd"],4), "\n", 
-                           'Bootstrap ', paste(round(100*x$method$mod.alpha/2,2),"%",sep=""), ' quantile: ',
-                           round(x$mod.stats["q1"], 4), "\n", 
-                           'Bootstrap ', paste(round(100*(1-x$method$mod.alpha/2),2),"%",sep=""), ' quantile: ',
-                           round(x$mod.stats["q2"], 4), sep = ""))
-}
-
-
 
 # creates rectangles around clusters of the dendrogram that satisfy condition on p-value estimates
 # x = PV.complete outut, other parameters the same as of pvrect function
@@ -593,7 +617,7 @@ PV.rectangle <- function(x, alpha = 0.95, pv = "au", type = "geq", max.only = T,
   usr = par("usr")
   xwd = usr[2]-usr[1]
   ywd = usr[4]-usr[3]
-  #ywd = m
+  
   cin = par()$cin
   
   if(is.null(border)) border = c(au = 2, bp = 3)[pv]
@@ -791,8 +815,9 @@ PV.graph.highlight = function(x, highlight = TRUE,
   
 }
 
-  
-  # Fine-tuning procedure for a single split
+
+
+# Fine-tuning procedure for a single split (see Newman (2006) for details)
 ft_method<-function(s,B,m){
   eps = length(s); notMv = 1:eps
   dQ_full = 0; 
@@ -844,20 +869,22 @@ SubSplit<-function(B,m,c_g){
 
 
 # Leading eigenvector algorithm with fine-tuning procedure implemented
-# G = input graph; weights = TRUE for weigted graph
+# G = input graph; 
+# default weights = TRUE uses graph weight attribute (equal 1 for unweighted graph)
+# can be specified vector of length E(G) or else weights = NULL to ignore weights attribute
 
 NewmanSpectral<-function(G, weights = TRUE){
   suppressMessages(require(igraph))
   suppressMessages(require(rARPACK))
   
   N = length(V(G)); comm_num = 1
-  if(weights){
-    A<-as.matrix(get.adjacency(G, attr = "weight"))
-    A[upper.tri(A, diag = T)&(A>0)] = E(G)$weight
-    A[lower.tri(A)] = t(A)[lower.tri(A)]
-  } else{
-    A<-as.matrix(get.adjacency(G))
+  if(is.null(E(G)$weight)){
+    E(G)$weight = 1
+  }else if(length(weights)==N){
+    E(G)$weight = weights
   }
+  
+  A<-as.matrix(get.adjacency(G, attr = "weight"))
   m = sum(A)/2
   B<-A-apply(A, 1, sum)%*%t(apply(A, 1, sum))/2/m
   u<-eigs_sym(B, 1, which = "LA", options = list(maxitr = 1000000))$vectors[,1]
@@ -893,7 +920,6 @@ NewmanSpectral<-function(G, weights = TRUE){
     }
   }
   
-  
   K = length(comm); KK = K*2-2
   
   if(K==0){
@@ -908,7 +934,7 @@ NewmanSpectral<-function(G, weights = TRUE){
     members = comm
     membership = 1:N 
     for(c in 1:K) membership[unlist(comm[[c]])]=c
-    AA = A-apply(A, 1, sum)%*%t(apply(A, 1, sum))/(2*m)
+    AA = A-apply(A, 1, sum)%*%t(apply(A, 1, sum))/2/m
     mod = sum(sapply(1:K, function(z){
       sum(AA[membership==z, membership==z])/2/m}))
   }
@@ -923,11 +949,6 @@ NewmanSpectral<-function(G, weights = TRUE){
 }
 NewmanSpectral = compiler::cmpfun(NewmanSpectral)
 
-
-  orig.mod = modularity(g, res$membership, weights = E(g)$weight)
-  
-  return(list(orig.cl, orig.merges, orig.mod))
-}
 
   
   
