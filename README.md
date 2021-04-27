@@ -1,11 +1,13 @@
 # LVPV
-AU p-values estimation for community detection with leading eigenvector
+*Assessing statistical support for community detection with leading eigenvector algorithm
 
-This code is supplementary material to the article on the *leading eigenvector* algorithm for community detection. 
-lvpv contains functions that allow (i) to find approximately unbiased (AU) p-values of the communities found by the leading eigenvector algorithm and (ii) visualise the results as either dendrogram or binary graph. 
-With this functions, from a numeric dataset a complete graph is built (via *igraph* \[[4](https://igraph.org/r/)\] package) with weights calculated from the correlation matrix of the data (see *LModularity* function from *evolQG* \[[5](https://cran.r-project.org/web/packages/evolqg/index.html)\] package for another example of such transformation). The leading eigenvector algorithm \[[1](https://www.pnas.org/content/103/23/8577)\] is applied, and then Shimodaira's  multiscale bootstrap \[[3](https://projecteuclid.org/euclid.aos/1107794881)\] procedure (based on the *pvclust* \[[2](https://cran.r-project.org/web/packages/pvclust/index.html)\] package implementation) is conducted to estimate the p-values of the detected modules.
-Additional feature allows to access naive bootstrap estimates for the modularity mean, standard deviation and quantiles of desired level.
-`tuning` option uses fine-tuning procedure in the leading eigenvector algorithm as described in the original article \[[1](https://www.pnas.org/content/103/23/8577)\].
+This program is supplementary material to the study of the leading eigenvector algorithm for community detection \[[1](https://www.pnas.org/content/103/23/8577)\]. `lvpv.r` contains functions that allow to (i) use fine-tuning procedure in the leading algorithm; (ii) create graphs from the raw data and subsequently apply the leading eigenvector algorithm; (iii) find approximately unbiased (AU) and naive bootstrap (BP) p-values for the communities found by the leading eigenvector algorithm; and (iv) visualise results as either dendrogram or binary graph. 
+
+The functions use numeric dataset as an input. First, a complete graph is built (via *igraph* [4] package); weights are assigned from the correlation matrix, by default an exponential transformation is used: `w = exp{(max(C)-C)/sd(C)^2}` that allows to work with negative correlation coefficients, or the coefficients can be taken into power defined by parameter beta (see *LModularity* function from give in the summary*evolQG* \[[5](https://cran.r-project.org/web/packages/evolqg/index.html)\] package for another example of such transformation for `beta = 2`). Different options for correlation are set with method and use parameters of the *cor* function. Parameter `q.cut` cuts off the smaller absolute values (with diagonal excluded) of the correlation matrix at the specified level when creating a graph. By default, a correlation matrix with any negative values is exponentially transformed. 
+The leading eigenvector algorithm is applied with (`tuning = TRUE`) or without (`tuning = FALSE`) the fine-tuning procedure described in the original article \[[1](https://www.pnas.org/content/103/23/8577)\]. If parameter `bootstrap = TRUE`, Shimodaira's multiscale bootstrap procedure \[[3](https://projecteuclid.org/euclid.aos/1107794881)\] (adapted from the *pvclust* \[[2](https://cran.r-project.org/web/packages/pvclust/index.html)\] package implementation) is used to calculate approximately unbiased (AU) and naïve bootstrap (BP) estimations of the p-values for each of the detected modules. Additional features include naive bootstrap estimates for the modularity mean, standard deviation and quantiles of desired level. Results can be visualised as either graph (similar to the *pvclust* plot function) or as graph; both have an option (`members`) to highlight modules with certain significance level (or with lack of thereof) anf to label the elements. 
+
+Additional features include naïve bootstrap estimates for the modularity mean, standard deviation and quantiles of desired level given in the summary.
+See code comments for other available functions parameters.
 
 ## Examples
 
@@ -19,30 +21,23 @@ source("lvpv.r")
 pvTD = PV.complete(TestData, iseed=767)
 PV.summary(pvTD)
 
-pvD2 = PV.complete(Data2)
+# built graph with exponentially transformed correlation matrix with special q.cut and diag parameters.
+pvD2 = PV.complete(Data2, exp = TRUE, q.cut = .5, diag = FALSE)
 PV.summary(pvD2) 
-```
-Different options for correlation are set with `method` and `use` parameters. Parameter `q.cut` cuts off the lower values (with diagonal excluded) of the squared correlation matrix at the specified level when creating a graph. By default, a correlation matrix with any negative values is squared, but also option `square = FALSE` is available. It sets gauss transformation of the correlation matrix (on its own, gauss transformation can be set by `gauss = TRUE`).
-```
-# built graph with non-squared gauss-transformed correlation matrix
-pvTD.n = PV.complete(TestData, iseed=767, square=FALSE)
+
+pvTD.n = PV.complete(TestData, iseed=767, exp = TRUE, q.cut = .5, diag = FALSE)
 PV.summary(pvTD.n)
-```
-Another available option is to create graph with loops by using diagonal elements of the correlation matrix (as in *LModularity*):
-```
-pvTD.diag = PV.complete(TestData, iseed=767, q.cut=0, diag=TRUE)
-PV.summary(pvTD.diag)
 ```
 
 ### Visualization
-There are two ways to visualise results. `PV.dendro`, `PV.text`, and `PV.rectangle` functions provide dendrogram plots with annotations like those of the *pvclust* package, `PV.graph` and `PV.graph.highlight` create and plot binary graph with labeled nodes. Both plot functions use standard visual parameters (for dendrograms, see also *plot.pvclust* help). Parameter `members` allow to see the members of modules with `which` numbers (if `which` is not specified all modules are shown). 
+There are two ways to visualise results. `PV.dendro` and `PV.rectangle` functions provide dendrogram plots with annotations similar to those of the *pvclust* package, `PV.graph` with `highlight = TRUE` option highlights specified modules depending on the AU or BP values (detailes given in the code comments; see also *plot.pvclust* help). Parameter `members` allow to see the members of modules with `which` numbers (if `which` is not specified all modules are shown). 
 ```
 # DENDROGRAM
-PV.dendro(pvTD, print.pv = F); PV.text(pvTD) # dendrogram with added AU p-values
+PV.dendro(pvTD,n); PV.rectangle(pvTD.n)
 # Fig. 2, right
 PV.dendro(pvD2, col = "darkgreen", col.pv = c(au = "red", bp = "blue"), lwd = 2, cex.pv = 1.2, cex = 1.5)
 # highlight modules with significant (e.g. AU p-value >= .95) highlighted with rectangles (Fig 2, left)
-PV.dendro(pvD2); PV.rectangle(pvD2, border = "blue", col = rgb(red=0, green=0, blue=1, alpha=0.1)) 
+PV.dendro(pvD2); PV.rectangle(pvD2, border = "blue", fill.col = rgb(red=0, green=0, blue=1, alpha=0.1)) 
 ```
 <img align = "center" src = "Images/dendro_options3.png" alt = "Dendrogram with rectangles" width = 850>
 
@@ -56,15 +51,15 @@ Information on the depicted clusters is contained within `PV.summary` output:
 
 ```
 # GRAPH
-plot(PV.graph(pvTD)) # graph with p-values
-PV.graph.highlight(pvTD, col="lightblue") # graph with highlighted modules of AU p-value >= .95
+PV.graph(pvTD.n) # graph with p-values
+PV.graph(pvTD.n, highlight = TRUE, fill.col="lightblue") # graph with highlighted modules of AU p-value >= .95
 ```
 In graphs, objects nodes can be hidden with `members`; labels for the objects can be fully or partially removed from the graph with `m.labels` or `which` parameters respectfully:
 ```
-PV.graph.highlight(pvD2, col="lightblue", members = F) # hide nodes
-PV.graph.highlight(pvD2, col="lightblue", m.labels = F) # hide labels (Fig. 2, left)
+PV.graph(pvD2, highlight = TRUE, fill.col="lightblue", members = F) # hide nodes
+PV.graph(pvD2, highlight = TRUE, fill.col="lightblue", m.labels = F) # hide labels (Fig. 2, left)
 # show labels for the  1st and the 4th modules (Fig. 2, right):
-PV.graph.highlight(pvD2, col="lightblue", which = c(1,4))
+PV.graph(pvD2, highlight = TRUE, fill.col="lightblue", which = c(1,4))
 ```
 <img align = "center" src = "Images/graph_label_options.png" alt = "Graph labels options" width = 820>
 
