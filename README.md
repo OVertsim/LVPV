@@ -21,7 +21,7 @@ source("lvpv.r")
 pvTD = PV.complete(TestData, iseed=767)
 PV.summary(pvTD)
 
-# built graph with exponentially transformed correlation matrix with special q.cut and diag parameters.
+# built graph with special q.cut and diag parameters.
 pvD2 = PV.complete(Data2, exp = TRUE, q.cut = .5, diag = FALSE)
 PV.summary(pvD2) 
 
