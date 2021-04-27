@@ -1,5 +1,5 @@
 # LVPV
-*Assessing statistical support for community detection with leading eigenvector algorithm
+*Assessing statistical support for community detection with leading eigenvector algorithm*
 
 This program is supplementary material to the study of the leading eigenvector algorithm for community detection \[[1](https://www.pnas.org/content/103/23/8577)\]. `lvpv.r` contains functions that allow to (i) use fine-tuning procedure in the leading algorithm; (ii) create graphs from the raw data and subsequently apply the leading eigenvector algorithm; (iii) find approximately unbiased (AU) and naive bootstrap (BP) p-values for the communities found by the leading eigenvector algorithm; and (iv) visualise results as either dendrogram or binary graph. 
 
@@ -66,7 +66,7 @@ PV.graph(pvD2, highlight = TRUE, fill.col="lightblue", which = c(1,4))
 
 
 ## References
-1. M. E. J. Newman, *Modularity and community structure in networks*, Proceedings of the National Academy of Sciences of the USA, 103 (2006), 8577-8582.
+1. M.E.J. Newman, *Modularity and community structure in networks*, Proceedings of the National Academy of Sciences of the USA, 103 (2006), 8577-8582.
 2. R. Suzuki, H. Shimodaira, *Pvclust: an R package for assessing the uncertainty in hierarchical
 clustering*, Bioinformatics, 22 (2006), 1540–1542.
 3. H. Shimodaira, *Approximately unbiased tests of regions using multistep-multiscale bootstrap
