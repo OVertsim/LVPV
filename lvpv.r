@@ -858,3 +858,133 @@ PV.graph = function(x, members = TRUE,
        layout = graph_attr(G, "layout"))
 }
 
+ft_method<-function(s,B,m){
+  eps = length(s); notMv = 1:eps
+  dQ_full = 0; 
+  s1 = s;
+  count = 0; upd = T
+  
+  while(count < eps){
+    if(upd){
+      Bs = B%*%s; upd = F
+    }
+    dQ1 = -1; dQ_id = 0
+    
+    dQ_vec = (-s*Bs)[notMv]/m; dQ = max(dQ_vec)
+    if(dQ > dQ1){
+      dQ1 = dQ; i = which.max(dQ_vec); dQ_id = notMv[i]
+    }
+    s[dQ_id] = -s[dQ_id]; notMv = notMv[-i]
+    count = count + 1
+    if(dQ1>=0){s1 <- s; upd <- T}
+  }
+  return(s1)
+}
+
+
+# Split of clusters with fine-tuning procedure correction
+SubSplit<-function(B,m,c_g){
+  res = list(FALSE)
+  if(length(c_g)>1){
+    B_g<-B[c_g,c_g]-diag(apply(B[c_g,c_g], 1, sum))
+    
+    if(nrow(B_g)==2){
+      s_g = c(1,-1)
+    }
+    else{
+      u_g<-eigs_sym(B_g, 1, which = "LA", options = list(maxiter = 1000000))$vectors[,1]
+      s_g<-(u_g>=0)*2-1
+    }
+    
+    s_g = ft_method(s_g,B_g,m)
+    dQ = t(s_g)%*%B_g%*%s_g/4/m
+    
+    if((dQ>=0)&(abs(sum(s_g))<length(s_g))){
+      res=list(T,c_g[s_g>0],c_g[s_g<0])
+    }
+    
+  }
+  return(res)
+}
+
+
+# Leading eigenvector algorithm with fine-tuning procedure implemented
+# G = input graph; 
+# default weights = TRUE uses graph weight attribute (equal 1 for unweighted graph)
+# can be specified vector of length E(G) or else weights = NULL to ignore weights attribute
+
+NewmanSpectral<-function(G, weights = TRUE, warnings = TRUE){
+  suppressMessages(require(igraph))
+  suppressMessages(require(rARPACK))
+  
+  N = length(V(G)); comm_num = 1
+  if(is.null(E(G)$weight)){
+    E(G)$weight = 1
+  }else if(length(weights)==N){
+    E(G)$weight = weights
+  }
+  
+  A<-as.matrix(get.adjacency(G, attr = "weight"))
+  m = sum(A)/2
+  B<-A-apply(A, 1, sum)%*%t(apply(A, 1, sum))/2/m
+  u<-eigs_sym(B, 1, which = "LA", options = list(maxiter = 1000000))$vectors[,1]
+  s<-(u>=0)*2-1; s0 = ft_method(s,B,m)
+  comm = c()
+  
+  if(abs(sum(s0))==length(s0)){
+    if(warnings) print("No splits made")
+  }
+  else{
+    go = T; splt = c(); nn = 2
+    comm_temp = list((1:N)[s0>0], (1:N)[s0<0])
+    
+    while(go){
+      
+      go = F; k = 0
+      comm_temp1 = list()
+      
+      for(i in 1:nn){
+        res = SubSplit(B,m,comm_temp[[i]])
+        splt = c(splt, res[[1]])
+        
+        if(res[[1]]){
+          comm_temp1 = append(comm_temp1, list(res[[2]]))
+          comm_temp1 = append(comm_temp1, list(res[[3]]))
+          go = T; k = k+2
+        }
+        else{
+          comm = append(comm, list(comm_temp[[i]]))
+        }
+      }
+      comm_temp = comm_temp1; nn = k
+    }
+  }
+  
+  K = length(comm); KK = K*2-2
+  
+  if(K==0){
+    members = list(1:N)
+    membership = rep(1,N)
+    merge = matrix(ncol = 2)
+    mod = 0
+  }
+  else{
+    v1 = 1:KK; v2 = c(v1[!splt], v1[splt][(K-2):1])
+    merge = matrix(match(v1, v2)[KK:1], ncol = 2, byrow = T)
+    members = comm
+    membership = 1:N 
+    for(c in 1:K) membership[unlist(comm[[c]])]=c
+    AA = A-apply(A, 1, sum)%*%t(apply(A, 1, sum))/2/m
+    mod = sum(sapply(1:K, function(z){
+      sum(AA[membership==z, membership==z])/2/m}))
+  }
+  
+  result = list(
+    membership = membership,
+    merges = merge,
+    members = members,
+    modularity = mod
+  )
+  return(result)
+}
+NewmanSpectral = compiler::cmpfun(NewmanSpectral)
