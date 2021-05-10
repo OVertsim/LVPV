@@ -2,7 +2,7 @@
 
 # an implementation of a multiscale bootstrap procedure designed to estimate the p-values in the modular structure analysis with the leading eigenvector algorithm
 
-# by Oksana Vertsimakha and Igor Dzeverin, 2021-05-07
+# by Oksana Vertsimakha and Igor Dzeverin, 2021-05-08
 
 # References
 # Csardi, G., Nepusz, T. (2006). The igraph software package for complex network research. InterJournal, Complex Systems 1695. http://igraph.org
