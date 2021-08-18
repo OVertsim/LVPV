@@ -20,7 +20,7 @@
 # the correlation mattrix is used in power of the beta parameter;
 # option ="exp" uses exponential tranformation on the correlation matrix;
 # if there are negative correlations after beta parameter is used, option = "exp" is enforced;
-# if diag = TRUE the fraph is built with loops, default = TRUE;
+# if diag = TRUE the graph is built with loops, default = TRUE;
 # q.cut cuts off correlations below specified quantile (counted w/o diagonal), default = 0.5;
 
 
