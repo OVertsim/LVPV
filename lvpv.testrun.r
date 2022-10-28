@@ -16,8 +16,8 @@ colnames(TestData) = c("v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8")
 ## analyze TestData using Newman's leading eigenvector method
 pvTD = PV.complete(TestData, iseed=767)
 PV.dendro(pvTD, print.pv = F); PV.text(pvTD) 
-plot(PV.graph(pvTD))
-PV.graph.highlight(pvTD, col="lightblue")
+PV.graph(pvTD)
+PV.graph(pvTD, highlight=TRUE, alpha=0.8)
 PV.summary(pvTD)
 
 ## compare to the results of cluster analysis and Sammon's mapping
